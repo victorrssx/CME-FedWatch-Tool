@@ -10,7 +10,7 @@
   pacman::p_load(tidyverse, rvest, xml2,  
                  janitor, lubridate, ggtext, ggrepel, extrafont, scales, ggalt)
   pacman::p_loaded()
-  
+   
   decimais <- function(x, k) format(round(x, k), nsmall = k, big.mark = ".", decimal.mark = ",",  scientific = FALSE)
 
   
