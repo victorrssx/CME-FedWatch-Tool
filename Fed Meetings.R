@@ -17,7 +17,7 @@
 
   ## Importando dados
   
-  fedmeetings = read.csv("https://cmegroup-tools.quikstrike.net/User/Export/FedWatch/AllMeetings.aspx?insid=111404028&qsid=61f2911a-642f-4c51-9a2d-0118447f3f23.csv") %>%  
+  fedmeetings = read.csv("https://cmegroup-tools.quikstrike.net/User/Export/FedWatch/AllMeetings.aspx?insid=111495552&qsid=ee0ef8ec-c1f1-4886-9287-905092ecf31a.csv") %>%  
                 clean_names() %>%
                 set_names(c('Date', colnames(.[2:length(.)]))) %>% 
                 select(where(function(x) any(!is.na(x)))) %>% # remove colunas que contém apenas NAs https://stackoverflow.com/questions/2643939/remove-columns-from-dateframe-where-all-values-are-na
@@ -70,6 +70,8 @@
                     legend.text = element_markdown(size = 13))
   
   
+  # Valor Esperado do Fed Funds Rate
+  
   fedmeetings_wavg %>%
      {ggplot(., aes(x = date, y = w_avg, group = meeting, color = meeting)) +
          geom_line(size = 1) +
@@ -85,30 +87,9 @@
          tema_base} %>% 
      ggsave("2.png", ., width = 12, height = 7, units = "in", dpi = 300)
   
-    
-  fedmeetings_wavg %>% 
-     filter((meeting == "jan/2024" | 
-             meeting == "mar/2024") &
-             date >= "2021-12-01") %>% 
-     {ggplot(., aes(x = date, y = w_avg, group = meeting, color = meeting)) +
-         geom_line(size = 1, show.legend = F) +
-         geom_point(size = 1.5, show.legend = F) +
-         labs(title = "**O quê o mercado espera da taxa de juros americana?**",
-              subtitle = "Novembro de 2021 até o momento, em bps.<br>",
-              caption = "<br> Fonte: Elaboração própria a partir de dados do CME Group.",
-              x = "", y = "") +
-         scale_x_date(breaks = "1 months", labels = label_date_short(format = c("%y", "%b"))) +
-         #scale_y_continuous(breaks = seq(0, 350, 25), limits = c(0, 350)) +
-         theme_minimal(base_size = 15) +
-         tema_base +
-         theme(panel.grid.minor = element_blank(),
-               panel.grid.major.x = element_blank(),
-               panel.grid = element_line(linetype = "twodash")) +
-         facet_wrap(~meeting)} %>% 
-     ggsave("2.png", ., width = 12, height = 7, units = "in", dpi = 300)
   
-  
-  
+  # Comparação 7 dias
+
   fedmeetings_wavg %>% 
      pivot_wider(names_from = meeting, values_from = w_avg) %>% 
      .[seq(which(.$date == max(.$date)) - 5, 
@@ -119,58 +100,50 @@
      {ggplot(., aes(x = meeting, y = w_avg, group = date, color = date)) +
          geom_line(size = 1) +
          geom_point(size = 3) +
-         scale_color_viridis_d(option = "mako", begin = 0.1, end = 0.9, direction = -1) +
          geom_text_repel(aes(label = decimais(w_avg,1)), show.legend = F, force_pull = 2.5, force = 8) +
-         #scale_y_continuous(breaks = seq(100, 350, 50), limits = c(100, 350)) +
-         labs(title = "Curva de Valor Esperado do Juro Americano",
-              subtitle = "Em bps. Fonte: Elaboração própria a partir de dados do CME Group.",
-              x = "Reuniões do Fed", y = "Valor Esperado") +
+         labs(title = "**Curva de Valor Esperado do Juro Americano**",
+              subtitle = "Em bps.",
+              caption = "<br> Fonte: Elaboração própria a partir de dados do CME Group.",
+              x = "", y = "") +
+         scale_y_continuous(n.breaks = 6) +
+         scale_color_viridis_d(option = "mako", begin = 0.1, end = 0.9, direction = -1) +
          theme_minimal(base_size = 15) +
          tema_base +
-         theme(#axis.text.y = element_text(size = 15, margin = unit(c(0,0,0,5), "mm")),
-               #axis.text.x = element_text(angle = 45, margin = unit(c(0,0,-8,0), "mm")),
-               panel.grid.minor = element_blank(),
+         theme(panel.grid.minor = element_blank(),
                panel.grid.major.x = element_blank(),
                panel.grid = element_line(linetype = "twodash"),
-               #plot.caption = element_text(hjust = -0.06, margin = unit(c(-5,0,0,0), "mm")),
                legend.title = element_blank())} %>% 
      ggsave("2.png", ., width = 12, height = 7, units = "in", dpi = 300)
 
   
+ # Lollipop Chart, Comparação 7 dias
   
- fedmeetings_wavg %>% 
-    mutate(date = case_when(date == max(date) ~ "Hoje",
-                            date == (max(date)-7) ~ "Semana passada", 
-                            T ~ as.character(date))) %>% 
-    filter(date == "Hoje" |
-             date == "Semana passada") %>%
-    pivot_wider(names_from = date, values_from = w_avg) %>% 
-    mutate(meetings = factor(meeting, levels = meeting),
-           Inicio = 0,
-           Diff = Hoje - `Semana passada`) %>% 
-    {ggplot(., aes(x = Inicio, xend = Diff, y = meeting, group = meeting)) +
-    geom_vline(xintercept = 0, colour = "black", size = 0.5) +
-    geom_dumbbell(color = "#a3c4dc", 
-                  size = 2.75, 
-                  colour_xend = "#0e668b") + 
-    scale_y_discrete(limits = rev) + 
-    labs(x = NULL, 
-         y = NULL, 
-         title = "Variação do Valor Esperado (t - t-7)", 
-         subtitle = "Em bps. Fonte: Elaboração própria a partir de CME Group.") +
-    theme_minimal(base_size = 15) +
-    theme(plot.title = element_text(size = 22),
-          plot.subtitle = element_text(size = 15, lineheight = 1.1, colour = "#9999aa"),
-          axis.text = element_text(colour = "black"),
-          #axis.text.y = element_text(size = 15, margin = unit(c(0,0,0,5), "mm")),
-          #axis.text.x = element_text(angle = 45, margin = unit(c(0,0,-8,0), "mm")),
-          axis.title = element_text(size = 15),
-          panel.grid.major.x = element_line(size = 0.5, colour = "#9999aa"),
-          panel.grid.minor = element_blank(),
-          panel.grid = element_line(linetype = "twodash"),
-          #plot.caption = element_text(hjust = -0.06, margin = unit(c(-5,0,0,0), "mm")),
-          legend.title = element_blank())} %>% 
- ggsave("2.png", ., width = 12, height = 7, units = "in", dpi = 300)
+  fedmeetings_wavg %>% 
+     mutate(date = case_when(date == max(date) ~ "Hoje",
+                             date == (max(date)-7) ~ "Semana passada", 
+                             T ~ as.character(date))) %>% 
+     filter(date == "Hoje" |
+            date == "Semana passada") %>%
+     pivot_wider(names_from = date, values_from = w_avg) %>% 
+     mutate(meetings = factor(meeting, levels = meeting),
+            Diff = Hoje - `Semana passada`) %>% 
+     {ggplot(., aes(x = Diff, y = meeting, group = meeting)) +
+     geom_vline(xintercept = 0, colour = "black", size = 0.5) +
+     geom_lollipop(horizontal = T, 
+                   color = "#a3c4dc", size = 2.75, 
+                   point.colour = "#0e668b", point.size = 7) +
+     scale_y_discrete(limits = rev) + 
+     labs(x = "", y = "", 
+          title = "**Variação do Valor Esperado (t - t-7)**", 
+          subtitle = "Em bps.",
+          caption = "<br> <br> <br> Fonte: Elaboração própria a partir de CME Group.") +
+     theme_minimal(base_size = 15) +
+     tema_base +
+     theme(panel.grid.major.x = element_line(size = 0.5, colour = "#9999aa"),
+           panel.grid.minor = element_blank(),
+           panel.grid = element_line(linetype = "twodash"),
+           legend.title = element_blank())} %>% 
+  ggsave("2.png", ., width = 12, height = 7, units = "in", dpi = 300)
   
   
   
