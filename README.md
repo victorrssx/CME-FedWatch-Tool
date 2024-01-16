@@ -13,4 +13,4 @@ mostra que a maneira mais eficaz de fazer o `webscraping` seria através
 de um processo de automação que efetivamente entrasse na página e
 baixasse os dados, clicando em cada ponto necessário, como se fosse
 realmente algum humano. Nesse momento, optei por apenas copiar e colar o
-link do dia.
+link do dia em questão.
