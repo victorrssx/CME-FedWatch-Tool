@@ -6,6 +6,7 @@
   ################                     ################
   #####################################################
   
+  extrafont::loadfonts()
   
   pacman::p_load(tidyverse, rvest, xml2,  
                  janitor, lubridate, ggtext, ggrepel, extrafont, scales, ggalt)
@@ -17,7 +18,7 @@
 
   ## Importando dados
   
-  fedmeetings = read.csv("https://cmegroup-tools.quikstrike.net/User/Export/FedWatch/AllMeetings.aspx?insid=111495552&qsid=ee0ef8ec-c1f1-4886-9287-905092ecf31a.csv") %>%  
+  fedmeetings = read.csv("https://cmegroup-tools.quikstrike.net/User/Export/FedWatch/AllMeetings.aspx?insid=114705444&qsid=b7aab601-0546-4eb0-b6af-85f9733f4659.csv") %>%  
                 clean_names() %>%
                 set_names(c('Date', colnames(.[2:length(.)]))) %>% 
                 select(where(function(x) any(!is.na(x)))) %>% # remove colunas que contém apenas NAs https://stackoverflow.com/questions/2643939/remove-columns-from-dateframe-where-all-values-are-na
@@ -65,6 +66,8 @@
                     panel.grid.minor = element_blank(),
                     panel.grid.major.x = element_blank(),
                     panel.grid = element_line(linetype = "twodash"),
+                    panel.background = element_rect(colour = "white", fill = "white"),
+                    plot.background = element_rect(colour = "white", fill = "white"),
                     plot.caption = element_markdown(hjust = -0.06, margin = unit(c(-5,0,0,0), "mm")),
                     legend.title = element_markdown(size = 15),
                     legend.text = element_markdown(size = 13))
@@ -85,7 +88,7 @@
          scale_color_viridis_d(option = "mako", begin = 0.1, end = 0.9, direction = -1) +
          theme_minimal(base_size = 15) +
          tema_base} %>% 
-     ggsave("2.png", ., width = 12, height = 7, units = "in", dpi = 300)
+     ggsave("Imagem.png", ., width = 12, height = 7, units = "in", dpi = 300)
   
   
   # Comparação 7 dias
@@ -95,7 +98,7 @@
      .[seq(which(.$date == max(.$date)) - 5, 
            which(.$date == max(.$date)), 
            5),] %>% 
-     pivot_longer(cols = 2:10, names_to = "meeting", values_to = "w_avg") %>% 
+     pivot_longer(cols = 2:length(.), names_to = "meeting", values_to = "w_avg") %>% 
      mutate(date = factor(date)) %>% 
      {ggplot(., aes(x = meeting, y = w_avg, group = date, color = date)) +
          geom_line(size = 1) +
@@ -113,7 +116,7 @@
                panel.grid.major.x = element_blank(),
                panel.grid = element_line(linetype = "twodash"),
                legend.title = element_blank())} %>% 
-     ggsave("2.png", ., width = 12, height = 7, units = "in", dpi = 300)
+     ggsave("Imagem.png", ., width = 12, height = 7, units = "in", dpi = 300)
 
   
  # Lollipop Chart, Comparação 7 dias
@@ -136,14 +139,14 @@
      labs(x = "", y = "", 
           title = "**Variação do Valor Esperado (t - t-7)**", 
           subtitle = "Em bps.",
-          caption = "<br> <br> <br> Fonte: Elaboração própria a partir de CME Group.") +
+          caption = "<br> <br> <br> Fonte: Elaboração própria a partir de dados do CME Group.") +
      theme_minimal(base_size = 15) +
      tema_base +
      theme(panel.grid.major.x = element_line(size = 0.5, colour = "#9999aa"),
            panel.grid.minor = element_blank(),
            panel.grid = element_line(linetype = "twodash"),
            legend.title = element_blank())} %>% 
-  ggsave("2.png", ., width = 12, height = 7, units = "in", dpi = 300)
+  ggsave("Imagem.png", ., width = 12, height = 7, units = "in", dpi = 300)
   
   
   
